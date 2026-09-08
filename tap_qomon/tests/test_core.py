@@ -5,6 +5,7 @@ import os
 from unittest.mock import Mock
 
 import pytest
+from hotglue_singer_sdk import typing as th
 from hotglue_singer_sdk.testing import get_standard_tap_tests
 
 from tap_qomon.tap import TapQomon
@@ -124,6 +125,24 @@ def test_invalid_credentials_raise_credential_error(sample_config):
 
     with pytest.raises(InvalidCredentialsError):
         tap.discover_streams()
+
+
+def test_property_type_per_form_type():
+    from tap_qomon.custom_fields import property_type_for
+
+    def schema(form_type):
+        return th.Property("x", property_type_for({"type": form_type})).to_dict()["x"]
+
+    assert schema("text") == {"type": ["string", "null"]}
+    assert schema("numeric") == {"type": ["string", "null"]}
+    assert schema("radio") == {"type": ["string", "null"]}
+    # Qomon stores date answers as ISO-8601 timestamps, so targets get a real
+    # timestamp column rather than text.
+    assert schema("date") == {"type": ["string", "null"], "format": "date-time"}
+    assert schema("checkbox") == {
+        "type": ["array", "null"],
+        "items": {"type": ["string"]},
+    }
 
 
 def test_custom_field_unfurling_skips_reserved_labels_and_groups_multi_values():

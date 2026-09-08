@@ -24,6 +24,9 @@ FREE_INPUT_FORM_TYPES = frozenset({"text", "numeric", "date"})
 # Form types that accept more than one answer per contact, so they unfurl to an array.
 MULTI_VALUE_FORM_TYPES = frozenset({"checkbox"})
 
+# Form types Qomon stores as an ISO-8601 UTC timestamp, e.g. "2026-07-16T00:00:00.000Z".
+DATE_FORM_TYPES = frozenset({"date"})
+
 
 def form_type(definition: dict[str, Any]) -> str:
     return str(definition.get("type") or "text").lower()
@@ -37,11 +40,15 @@ def definition_label(definition: dict[str, Any]) -> str | None:
 def property_type_for(definition: dict[str, Any]) -> Any:
     """Return the JSON schema type a custom field definition unfurls to.
 
-    Qomon always returns form answers as strings (`data`), so scalar fields map to
-    strings regardless of their form type; only multi-answer forms differ.
+    Qomon returns form answers as strings (`data`), so scalar fields map to strings
+    apart from date forms, whose answers are ISO-8601 timestamps worth typing as such
+    so targets create a real timestamp column.
     """
-    if form_type(definition) in MULTI_VALUE_FORM_TYPES:
+    definition_type = form_type(definition)
+    if definition_type in MULTI_VALUE_FORM_TYPES:
         return th.ArrayType(th.StringType)
+    if definition_type in DATE_FORM_TYPES:
+        return th.DateTimeType
     return th.StringType
 
 
