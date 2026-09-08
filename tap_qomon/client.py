@@ -37,10 +37,7 @@ class QomonStream(RESTStream):
         return f"{self.url_base}/{self.path.lstrip('/')}"
 
     def validate_response(self, response: requests.Response) -> None:
-        """Surface Qomon auth failures as credential errors rather than fatal errors.
-
-        429 and 5xx are already retried by the SDK's default handling.
-        """
+        """Raise an exception if the response is not valid."""
         if response.status_code in {401, 403}:
             raise InvalidCredentialsError(response.text or response.reason)
         super().validate_response(response)

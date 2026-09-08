@@ -22,11 +22,7 @@ MAX_PAGE_SIZE = 1000
 
 
 class ContactsStream(QomonStream):
-    """Contacts stream with dynamically discovered custom field properties.
-
-    Qomon has no contact listing endpoint; contacts are read through the search API
-    (`POST /search`), which also drives incremental replication via `UpdatedAt`.
-    """
+    """Contacts stream with dynamically discovered custom field properties. """
 
     name = "contacts"
     path = "/search"
@@ -35,9 +31,6 @@ class ContactsStream(QomonStream):
     primary_keys: ClassVar[list[str]] = ["id"]
     replication_key = "UpdatedAt"
     page_size = MAX_PAGE_SIZE
-    # Search attribute holding the contact's last change date, used to page in a
-    # stable order. One of surname, firstname, birthdate, gender, lastchange, mail,
-    # married_name, city.
     sort_attr = "lastchange"
 
     @classmethod
@@ -169,8 +162,6 @@ class ContactsStream(QomonStream):
                     "per_page": self.page_size,
                     "sort_attr": self.sort_attr,
                     "sort_asc": True,
-                    # The API rejects bare conditions at the top level; they have to
-                    # be wrapped in a nested group.
                     "query": {"$all": [{"$all": conditions}] if conditions else []},
                 },
             },

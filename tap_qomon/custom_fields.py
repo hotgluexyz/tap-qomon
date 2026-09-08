@@ -12,19 +12,12 @@ PROBE_SCHEMA = {"type": "object", "properties": {}}
 
 CUSTOM_FIELDS_FORM_TYPE = "custom_fields"
 
-# Contact keys that carry form answers. Custom field forms normally answer into
-# `custom_fields`, but Qomon also returns form answers under `formdatas`, so both
-# are scanned when unfurling.
 FORM_ANSWER_KEYS = ("custom_fields", "formdatas")
 
-# Form types whose answer is free input stored on the entry's `data` string. Every
-# other type answers with one of the form's predefined `refvalues`.
 FREE_INPUT_FORM_TYPES = frozenset({"text", "numeric", "date"})
 
-# Form types that accept more than one answer per contact, so they unfurl to an array.
 MULTI_VALUE_FORM_TYPES = frozenset({"checkbox"})
 
-# Form types Qomon stores as an ISO-8601 UTC timestamp, e.g. "2026-07-16T00:00:00.000Z".
 DATE_FORM_TYPES = frozenset({"date"})
 
 
@@ -38,12 +31,7 @@ def definition_label(definition: dict[str, Any]) -> str | None:
 
 
 def property_type_for(definition: dict[str, Any]) -> Any:
-    """Return the JSON schema type a custom field definition unfurls to.
-
-    Qomon returns form answers as strings (`data`), so scalar fields map to strings
-    apart from date forms, whose answers are ISO-8601 timestamps worth typing as such
-    so targets create a real timestamp column.
-    """
+    """Return the JSON schema type a custom field definition unfurls to."""
     definition_type = form_type(definition)
     if definition_type in MULTI_VALUE_FORM_TYPES:
         return th.ArrayType(th.StringType)
