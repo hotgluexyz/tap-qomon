@@ -18,6 +18,10 @@ FREE_INPUT_FORM_TYPES = frozenset({"text", "numeric", "date"})
 
 MULTI_VALUE_FORM_TYPES = frozenset({"checkbox"})
 
+# Dropped once unfurled. `formdatas` is kept: it also carries non-custom-field
+# form answers (consents, level of support, tasks) that nothing else surfaces.
+REPLACED_ANSWER_KEYS = ("custom_fields",)
+
 DATE_FORM_TYPES = frozenset({"date"})
 
 
@@ -139,3 +143,6 @@ def flatten_custom_fields(
             row[label] = values
         else:
             row[label] = values[0]
+
+    for answer_key in REPLACED_ANSWER_KEYS:
+        row.pop(answer_key, None)

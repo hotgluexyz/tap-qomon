@@ -93,17 +93,6 @@ class ContactsStream(QomonStream):
                 th.ArrayType(th.ObjectType(th.Property("name", th.StringType))),
             ),
             th.Property(
-                "custom_fields",
-                th.ArrayType(
-                    th.ObjectType(
-                        th.Property("id", th.IntegerType),
-                        th.Property("form_id", th.IntegerType),
-                        th.Property("form_ref_id", th.IntegerType),
-                        th.Property("data", th.StringType),
-                    ),
-                ),
-            ),
-            th.Property(
                 "formdatas",
                 th.ArrayType(
                     th.ObjectType(

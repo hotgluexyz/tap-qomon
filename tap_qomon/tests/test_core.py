@@ -58,6 +58,7 @@ def test_contacts_records_unfurl_custom_fields(discovered_stream):
     unfurled = [record for record in records if labels & set(record)]
 
     assert unfurled, "Expected at least one contact with a custom field value"
+    assert all("custom_fields" not in record for record in records)
 
 
 def test_contacts_pagination(discovered_stream):
@@ -192,3 +193,6 @@ def test_custom_field_unfurling_skips_reserved_labels_and_groups_multi_values():
     assert row["Job"] == "Data Engineer"
     # Predefined answers unfurl to their readable label, not the stored slug.
     assert row["Interests"] == ["Climate", "Housing"]
+    # The unfurled properties replace the raw array; formdatas survives.
+    assert "custom_fields" not in row
+    assert "formdatas" in row

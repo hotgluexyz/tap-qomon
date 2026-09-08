@@ -79,7 +79,7 @@ Custom field definitions are fetched from `/v1/forms/type/custom_fields` at disc
 - Qomon returns every form answer as a string, so custom fields are typed as strings. Two form types differ: multi-answer forms (`checkbox`) are typed as arrays of strings, and `date` forms are typed as `date-time`, since Qomon stores those answers as ISO-8601 UTC timestamps (e.g. `2026-07-16T00:00:00.000Z`).
 - For forms with predefined answers (`radio`, `select`, `checkbox`), the readable `refvalue` label is emitted rather than the stored slug — e.g. `Convinced`, not `convinced`. Free-input forms (`text`, `numeric`, `date`) emit the entry's `data` value.
 - Custom fields whose label matches a standard contact property are skipped, so the built-in field always wins.
-- The raw `custom_fields` and `formdatas` arrays are still emitted alongside the unfurled properties, so answers to non-custom-field forms (consents, level of support, tasks, surveys) are not lost.
+- The raw `custom_fields` array is dropped once unfurled, since the unfurled properties replace it. `formdatas` is still emitted, because it also carries answers to forms that are not custom fields (consents, level of support, tasks, surveys), which nothing else surfaces.
 
 ## Usage
 
