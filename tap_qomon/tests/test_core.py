@@ -5,6 +5,7 @@ import os
 from unittest.mock import Mock
 
 import pytest
+from hotglue_singer_sdk import typing as th
 from hotglue_singer_sdk.testing import get_standard_tap_tests
 
 from tap_qomon.tap import TapQomon
@@ -57,6 +58,7 @@ def test_contacts_records_unfurl_custom_fields(discovered_stream):
     unfurled = [record for record in records if labels & set(record)]
 
     assert unfurled, "Expected at least one contact with a custom field value"
+    assert all("custom_fields" not in record for record in records)
 
 
 def test_contacts_pagination(discovered_stream):
@@ -126,6 +128,24 @@ def test_invalid_credentials_raise_credential_error(sample_config):
         tap.discover_streams()
 
 
+def test_property_type_per_form_type():
+    from tap_qomon.custom_fields import property_type_for
+
+    def schema(form_type):
+        return th.Property("x", property_type_for({"type": form_type})).to_dict()["x"]
+
+    assert schema("text") == {"type": ["string", "null"]}
+    assert schema("numeric") == {"type": ["string", "null"]}
+    assert schema("radio") == {"type": ["string", "null"]}
+    # Qomon stores date answers as ISO-8601 timestamps, so targets get a real
+    # timestamp column rather than text.
+    assert schema("date") == {"type": ["string", "null"], "format": "date-time"}
+    assert schema("checkbox") == {
+        "type": ["array", "null"],
+        "items": {"type": ["string"]},
+    }
+
+
 def test_custom_field_unfurling_skips_reserved_labels_and_groups_multi_values():
     from tap_qomon.custom_fields import (
         custom_field_definitions_by_id,
@@ -173,3 +193,6 @@ def test_custom_field_unfurling_skips_reserved_labels_and_groups_multi_values():
     assert row["Job"] == "Data Engineer"
     # Predefined answers unfurl to their readable label, not the stored slug.
     assert row["Interests"] == ["Climate", "Housing"]
+    # The unfurled properties replace the raw array; formdatas survives.
+    assert "custom_fields" not in row
+    assert "formdatas" in row

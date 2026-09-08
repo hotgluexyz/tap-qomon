@@ -12,17 +12,17 @@ PROBE_SCHEMA = {"type": "object", "properties": {}}
 
 CUSTOM_FIELDS_FORM_TYPE = "custom_fields"
 
-# Contact keys that carry form answers. Custom field forms normally answer into
-# `custom_fields`, but Qomon also returns form answers under `formdatas`, so both
-# are scanned when unfurling.
 FORM_ANSWER_KEYS = ("custom_fields", "formdatas")
 
-# Form types whose answer is free input stored on the entry's `data` string. Every
-# other type answers with one of the form's predefined `refvalues`.
 FREE_INPUT_FORM_TYPES = frozenset({"text", "numeric", "date"})
 
-# Form types that accept more than one answer per contact, so they unfurl to an array.
 MULTI_VALUE_FORM_TYPES = frozenset({"checkbox"})
+
+# Dropped once unfurled. `formdatas` is kept: it also carries non-custom-field
+# form answers (consents, level of support, tasks) that nothing else surfaces.
+REPLACED_ANSWER_KEYS = ("custom_fields",)
+
+DATE_FORM_TYPES = frozenset({"date"})
 
 
 def form_type(definition: dict[str, Any]) -> str:
@@ -35,13 +35,12 @@ def definition_label(definition: dict[str, Any]) -> str | None:
 
 
 def property_type_for(definition: dict[str, Any]) -> Any:
-    """Return the JSON schema type a custom field definition unfurls to.
-
-    Qomon always returns form answers as strings (`data`), so scalar fields map to
-    strings regardless of their form type; only multi-answer forms differ.
-    """
-    if form_type(definition) in MULTI_VALUE_FORM_TYPES:
+    """Return the JSON schema type a custom field definition unfurls to."""
+    definition_type = form_type(definition)
+    if definition_type in MULTI_VALUE_FORM_TYPES:
         return th.ArrayType(th.StringType)
+    if definition_type in DATE_FORM_TYPES:
+        return th.DateTimeType
     return th.StringType
 
 
@@ -144,3 +143,6 @@ def flatten_custom_fields(
             row[label] = values
         else:
             row[label] = values[0]
+
+    for answer_key in REPLACED_ANSWER_KEYS:
+        row.pop(answer_key, None)
