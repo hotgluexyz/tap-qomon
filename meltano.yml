@@ -1,0 +1,44 @@
+send_anonymous_usage_stats: true
+project_id: "tap-qomon"
+default_environment: test
+requires_meltano: ">=4.0"
+environments:
+- name: test
+plugins:
+  extractors:
+  - name: "tap-qomon"
+    namespace: "tap_qomon"
+    pip_url: -e .
+    capabilities:
+    - state
+    - catalog
+    - discover
+    - about
+    - stream-maps
+    - structured-logging
+
+    settings:
+    - name: api_key
+      label: API Key
+      description: Qomon API key from space settings
+      sensitive: true
+
+    - name: api_base_url
+      label: API Base URL
+      description: Qomon API base URL
+
+    - name: start_date
+      kind: date_iso8601
+      label: Start Date
+      description: Earliest contact UpdatedAt to sync on the first run
+
+    settings_group_validation:
+    - [api_key]
+
+    config:
+      api_base_url: https://incoming.qomon.app
+
+  loaders:
+  - name: target-jsonl
+    variant: andyh1203
+    pip_url: target-jsonl
