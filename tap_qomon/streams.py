@@ -131,7 +131,7 @@ class ContactsStream(QomonStream):
     ) -> dict | None:
         """Build the advanced search body, filtered from the replication bookmark."""
         conditions: list[dict[str, Any]] = []
-        start_timestamp = self.get_starting_timestamp(context)
+        start_timestamp = self.get_starting_time(context)
         if start_timestamp:
             conditions.append(
                 {
